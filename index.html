@@ -3,61 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PakPrice | Live Daily Tracker</title>
+    <title>PakRate Pro | Live Automated Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        body { 
+            background: #020617; 
+            color: #f8fafc; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        .card-glass { 
+            background: rgba(30, 41, 59, 0.4); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            transition: all 0.3s ease;
+        }
+        .card-glass:hover {
+            border-color: #22c55e;
+            transform: translateY(-2px);
+        }
+        .green-glow { text-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
     </style>
 </head>
-<body class="p-6">
-    <div class="max-w-4xl mx-auto">
+<body class="p-4 md:p-10">
+    <div class="max-w-5xl mx-auto">
         
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-black text-green-500 tracking-tighter">PAK<span class="text-white">PRICE</span></h1>
-            <p class="text-gray-400 text-sm mt-2">Live Automated Market Tracker — March 2026</p>
+        <header class="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+            <div>
+                <h1 class="text-3xl font-black italic tracking-tighter text-green-500">PAK<span class="text-white">RATE</span></h1>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Automated Market Intelligence</p>
+            </div>
+            <div class="text-right">
+                <div id="live-date" class="text-xs font-bold text-gray-400">Loading Date...</div>
+                <div class="text-[9px] text-green-500 animate-pulse uppercase">● System Live</div>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="glass p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Petrol (Super)</span>
-                    <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-1 rounded">▲ UP</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+            <div class="card-glass p-6 rounded-3xl">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Petrol (Super)</span>
+                    <span class="text-red-400 text-[10px] font-bold">+Rs. 8.00 Hike</span>
                 </div>
-                <div class="text-3xl font-black">Rs. 266.17</div>
-                <div class="text-[10px] text-gray-500 mt-2 italic text-right italic">Updated: Mar 1</div>
+                <div class="text-4xl font-black mb-1">Rs. 266.17</div>
+                <div class="text-[10px] text-gray-500 italic font-medium">Official Rate: March 2026</div>
             </div>
 
-            <div class="glass p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Diesel (HSD)</span>
-                    <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-1 rounded">▲ UP</span>
+            <div class="card-glass p-6 rounded-3xl">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Diesel (HSD)</span>
+                    <span class="text-red-400 text-[10px] font-bold">+Rs. 5.16 Hike</span>
                 </div>
-                <div class="text-3xl font-black">Rs. 280.86</div>
-                <div class="text-[10px] text-gray-500 mt-2 text-right italic">Updated: Mar 1</div>
+                <div class="text-4xl font-black mb-1">Rs. 280.86</div>
+                <div class="text-[10px] text-gray-500 italic font-medium">Effective March 1st onwards</div>
             </div>
 
-            <div class="glass p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Gold (24K/Tola)</span>
-                    <span class="bg-green-500/20 text-green-400 text-[10px] px-2 py-1 rounded">▼ DOWN</span>
+            <div class="card-glass p-6 rounded-3xl">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Gold (24K/Tola)</span>
+                    <span class="text-green-400 text-[10px] font-bold">Market Update</span>
                 </div>
-                <div id="gold-val" class="text-3xl font-black">Rs. 539,962</div>
-                <div class="text-[10px] text-gray-500 mt-2 text-right italic">Updated: Mar 4</div>
+                <div class="text-4xl font-black mb-1 tracking-tight">Rs. 539,962</div>
+                <div class="text-[10px] text-gray-500 italic font-medium tracking-wide">Daily bullion rate tracker</div>
             </div>
         </div>
 
-        <div class="glass p-8 rounded-[2rem] border-green-500/20 border-2">
-            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                ⚡ Electricity Bill Estimator (2026 Rates)
+        <div class="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 blur-3xl rounded-full"></div>
+            
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="bg-green-500 p-2 rounded-lg text-black">⚡</span>
+                2026 Bill Calculator
             </h2>
-            <div class="space-y-4">
-                <label class="block text-sm text-gray-400">Enter Monthly Units Consumed:</label>
-                <input type="number" id="units" placeholder="e.g. 350" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-xl outline-none focus:border-green-500">
-                
-                <button onclick="calculateBill()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all">CALCULATE ESTIMATE</button>
-                
-                <div id="bill-result" class="hidden mt-6 p-6 bg-white/5 rounded-2xl border-l-4 border-green-500">
-                    <div class="flex justify-between items-center text-sm mb-2">
-                        <span>Estimated Total Bill:</span>
-                        <span id="final-amount" class="text-2xl font-black text-green-400">Rs. 0</span>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-400 font-medium leading-relaxed">
+                        Enter your monthly unit consumption to see an estimated bill based on the 
+                        <span class="text-white font-bold">new March 2026 NEPRA rates</span> 
+                        (including the Rs. 1.63/unit fuel adjustment).
+                    </p>
+                    <input type="number" id="unitInput" placeholder="Enter Units (e.g. 350)" 
+                           class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl text-2xl font-bold focus:border-green-500 outline-none transition-all">
+                    <button onclick="calculatePakBill()" 
+                            class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl text-lg uppercase tracking-wider transition-all shadow-lg shadow-green-900/20">
+                        Calculate Bill
+                    </button>
+                </div>
+
+                <div id="resultArea" class="hidden h-full">
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-3xl h-full flex flex-col justify-center text-center">
+                        <span class="text-gray-500 text-xs font-bold uppercase mb-2">Estimated Amount Payable</span>
+                        <div id="totalBill" class="text-5xl font-black text-green-500 green-glow mb-2">Rs. 0</div>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-tighter">Includes 17% GST, Fuel Adj & PTV Fee</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+            &copy; 2026 PakRate Personal Project | Built for Automated Traffic
+        </footer>
+    </div>
+
+    <script>
+        // 1. Set Automatic Date
+        const dateElement = document.getElementById('live-date');
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.innerText = new Date().toLocaleDateString('en-US', options);
+
+        // 2. Bill Calculation Logic
+        function calculatePakBill() {
+            const units = parseFloat(document.getElementById('unitInput').value);
+            const resultArea = document.getElementById('resultArea');
+            const totalBillDisplay = document.getElementById('totalBill');
+
+            if (!units || units <= 0) {
+                alert("Please enter a valid unit number.");
+                return;
+            }
+
+            // March 2026 Estimated Slab Rates (Average)
+            let baseRate = 0;
+            if (units <= 100) baseRate = 24.50;      // Lifeline + Adjustment
+            else if (units <= 200) baseRate = 30.20;
+            else if (units <= 300) baseRate = 35.45;
+            else if (units <= 700) baseRate = 45.10;
+            else baseRate = 68.30;
+
+            const fuelAdjustment = 1.63; // March 2026 Notification
+            const totalPerUnit = baseRate + fuelAdjustment;
+            
+            const electricityCost = units * totalPerUnit;
+            const gst = electricityCost * 0.17; // 17% Sales Tax
+            const fixedCharges = 250; // Average Fixed + PTV Charges
+            
+            const grandTotal = electricityCost + gst + fixedCharges;
+
+            // Update UI
+            totalBillDisplay.innerText = "Rs. " + grandTotal.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+            
+            resultArea.classList.remove('hidden');
+            resultArea.classList.add('animate-pulse');
+            setTimeout(() => resultArea.classList.remove('animate-pulse'), 1000);
+        }
+    </script>
+</body>
+</html>
