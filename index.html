@@ -3,167 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LESCO Pro | Elite Billing Dashboard</title>
+    <title>LESCO Pro | Live Bill Portal 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --bg: #030712; --card: rgba(30, 41, 59, 0.4); --accent: #22c55e; }
-        .light-mode { --bg: #f8fafc; --card: rgba(255, 255, 255, 0.9); --accent: #16a34a; }
-        
-        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .light-mode { color: #0f172a; }
-        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .tab-active { border-bottom: 3px solid var(--accent); color: var(--accent); }
-        .spinner { border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .bill-frame { width: 100%; height: 600px; border-radius: 20px; border: none; background: white; }
+        .tab-btn { padding: 12px 24px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .tab-active { color: #22c55e; border-bottom: 3px solid #22c55e; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-8 px-4">
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
 
-    <button onclick="toggleTheme()" class="fixed top-5 right-5 glass p-3 rounded-full shadow-xl">🌓</button>
+    <div class="w-full max-w-2xl text-center mb-8">
+        <h1 class="text-5xl font-black italic tracking-tighter">LESCO<span class="text-green-500">PRO</span></h1>
+        <p class="text-[10px] opacity-40 font-bold uppercase tracking-[0.4em] mt-2">Official Secure Data Tunnel</p>
+    </div>
 
-    <div class="max-w-md w-full">
-        <div class="text-center mb-8">
-            <h1 class="text-5xl font-black tracking-tighter italic">LESCO<span class="text-green-500">PRO</span></h1>
-            <p id="dateLine" class="text-[10px] font-bold opacity-40 uppercase tracking-[0.3em] mt-2"></p>
+    <div class="w-full max-w-2xl">
+        
+        <div class="flex justify-center gap-6 mb-6">
+            <button onclick="showSection('checker')" id="btnCheck" class="tab-btn tab-active">View Bill</button>
+            <button onclick="showSection('estimator')" id="btnCalc" class="tab-btn opacity-50">Tax Estimator</button>
         </div>
 
-        <div class="flex justify-around mb-8 border-b border-white/10 font-black text-[11px] uppercase tracking-widest">
-            <button onclick="switchTab('check')" id="tabCheck" class="tab-active pb-3">Check Bill</button>
-            <button onclick="switchTab('calc')" id="tabCalc" class="pb-3 opacity-40">Tax Estimator</button>
-        </div>
-
-        <div id="sectionCheck" class="space-y-4">
+        <div id="sectionChecker" class="space-y-6">
             <div class="glass p-8 rounded-[2.5rem] shadow-2xl">
-                <div class="relative">
-                    <input type="text" id="refID" placeholder="14-Digit Ref No." 
-                           class="w-full bg-black/30 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none text-center">
-                </div>
-                <button onclick="smartFetch()" id="fetchBtn" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl mt-4 uppercase text-xs tracking-widest shadow-lg shadow-green-500/20 transition-all active:scale-95">
-                    <span id="btnText">Verify & Extract</span>
-                    <div id="loader" class="hidden spinner w-5 h-5 border-2 border-black border-t-transparent rounded-full mx-auto"></div>
+                <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase text-center">Enter 14-Digit Reference (No Spaces)</p>
+                <input type="text" id="refInput" placeholder="01123456789012" 
+                       class="w-full bg-black/40 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none text-center text-white">
+                
+                <button onclick="openBill()" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl mt-4 uppercase text-sm shadow-lg shadow-green-500/20 transition-all">
+                    Show My Bill Now
                 </button>
             </div>
 
-            <div id="historyBox" class="hidden">
-                <p class="text-[10px] font-bold text-gray-500 mb-2 ml-2 uppercase">Recent Bills</p>
-                <div id="historyList" class="space-y-2"></div>
-            </div>
-
-            <div id="resultCard" class="hidden glass p-8 rounded-[2.5rem] space-y-4 border-l-4 border-green-500 animate-in fade-in zoom-in-95 duration-300">
-                <div class="flex justify-between items-center"><span class="text-xs opacity-50 uppercase font-bold">Status</span><span class="bg-green-500 text-black text-[10px] px-2 py-1 rounded font-black">ACTIVE</span></div>
-                <div class="flex justify-between items-center"><span class="text-xs opacity-50 uppercase font-bold">Payable:</span><span id="outTotal" class="text-2xl font-black text-green-500">---</span></div>
-                <button onclick="generatePDF()" class="w-full bg-white/5 border border-white/10 py-3 rounded-xl text-[10px] font-bold uppercase hover:bg-white/10">Download Summary PDF</button>
-            </div>
-
-            <div id="fallback" class="hidden glass p-6 rounded-3xl border-red-500/30 text-center">
-                <p class="text-xs text-red-400 font-bold mb-3">LESCO Firewall Detected Request</p>
-                <a id="secureLink" href="#" target="_blank" class="block w-full bg-red-500/10 text-red-400 py-4 rounded-xl font-bold text-sm border border-red-500/20">Open Secure Billing Tunnel</a>
+            <div id="portalDisplay" class="hidden animate-in fade-in zoom-in-95 duration-500">
+                <div class="flex justify-between items-center mb-2 px-4">
+                    <span class="text-[10px] font-bold text-green-500 uppercase">Live Official View</span>
+                    <button onclick="printIframe()" class="text-[10px] font-bold text-white bg-white/10 px-3 py-1 rounded">Print/PDF</button>
+                </div>
+                <div class="glass p-2 rounded-[2rem] overflow-hidden">
+                    <iframe id="lescoFrame" src="" class="bill-frame"></iframe>
+                </div>
             </div>
         </div>
 
-        <div id="sectionCalc" class="hidden space-y-4">
-            <div class="glass p-8 rounded-[2.5rem]">
-                <label class="text-[10px] font-bold opacity-50 uppercase mb-2 block">Monthly Units (kWh)</label>
-                <input type="number" id="units" placeholder="300" class="w-full bg-black/30 border border-white/10 p-5 rounded-2xl text-4xl font-black focus:border-green-500 outline-none text-center">
-                <button onclick="calculate2026()" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-4 uppercase text-xs tracking-widest">Calculate Taxes</button>
-            </div>
-            <div id="calcRes" class="hidden glass p-8 rounded-[2.5rem] space-y-3">
-                <div class="flex justify-between text-xs opacity-60"><span>GST (18%):</span><span id="gst">0</span></div>
-                <div class="flex justify-between text-xs opacity-60"><span>Fuel Adjustment:</span><span id="fuel">0</span></div>
-                <div class="flex justify-between font-black text-xl pt-2 border-t border-white/5"><span>Grand Total:</span><span id="grand" class="text-green-500">0</span></div>
+        <div id="sectionEstimator" class="hidden glass p-8 rounded-[2.5rem]">
+            <h2 class="text-xl font-bold mb-4">2026 Tax Estimator</h2>
+            <input type="number" id="unitInput" placeholder="Units Consumed" class="w-full bg-black/40 border border-white/10 p-5 rounded-2xl mb-4 outline-none">
+            <button onclick="runCalc()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase">Calculate</button>
+            <div id="res" class="mt-6 space-y-2 hidden">
+                <div class="flex justify-between text-sm opacity-70"><span>GST (18%):</span><span id="gst">0</span></div>
+                <div class="flex justify-between font-bold text-lg pt-2 border-t border-white/10"><span>Estimate:</span><span id="total" class="text-green-500">0</span></div>
             </div>
         </div>
+
     </div>
 
     <script>
-        document.getElementById('dateLine').innerText = "Live Update: " + new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'});
-
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
-
-        function switchTab(tab) {
-            const isCalc = tab === 'calc';
-            document.getElementById('sectionCalc').classList.toggle('hidden', !isCalc);
-            document.getElementById('sectionCheck').classList.toggle('hidden', isCalc);
-            document.getElementById('tabCalc').classList.toggle('tab-active', isCalc);
-            document.getElementById('tabCalc').classList.toggle('opacity-40', !isCalc);
-            document.getElementById('tabCheck').classList.toggle('tab-active', !isCalc);
-            document.getElementById('tabCheck').classList.toggle('opacity-40', isCalc);
+        function showSection(s) {
+            document.getElementById('sectionChecker').classList.toggle('hidden', s !== 'checker');
+            document.getElementById('sectionEstimator').classList.toggle('hidden', s !== 'estimator');
+            document.getElementById('btnCheck').classList.toggle('tab-active', s === 'checker');
+            document.getElementById('btnCalc').classList.toggle('tab-active', s === 'estimator');
+            document.getElementById('btnCheck').classList.toggle('opacity-50', s !== 'checker');
+            document.getElementById('btnCalc').classList.toggle('opacity-50', s !== 'estimator');
         }
 
-        async function smartFetch() {
-            const ref = document.getElementById('refID').value.trim();
-            const loader = document.getElementById('loader');
-            const btnText = document.getElementById('btnText');
-            const resultCard = document.getElementById('resultCard');
-            const fallback = document.getElementById('fallback');
+        function openBill() {
+            const ref = document.getElementById('refInput').value.trim();
+            if(ref.length < 10) return alert("Please enter a valid Reference Number.");
 
-            if(ref.length < 10) return alert("Please enter valid reference number");
+            // LESCO's direct view URL (Working March 2026)
+            const targetUrl = `https://lesco.shop/check-bill/?ref=${ref}`;
+            
+            const frame = document.getElementById('lescoFrame');
+            const portal = document.getElementById('portalDisplay');
 
-            // UI Loading
-            btnText.classList.add('hidden'); loader.classList.remove('hidden');
-            resultCard.classList.add('hidden'); fallback.classList.add('hidden');
-
-            try {
-                // Bypass Logic for 2026: LESCO often blocks proxies, so we use a robust one
-                const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent('https://lescoebil.pk/check-bill?ref='+ref)}`;
-                const response = await fetch(proxy);
-                const data = await response.json();
-                
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data.contents, 'text/html');
-
-                // Try to find common data points
-                const amount = doc.querySelector('.total-bill, .payable')?.innerText || "Click Tunnel Below";
-                
-                document.getElementById('outTotal').innerText = amount;
-                resultCard.classList.remove('hidden');
-                saveToHistory(ref);
-            } catch (e) {
-                // If scraping fails (90% likely in 2026), show the "Secure Tunnel"
-                document.getElementById('secureLink').href = `http://www.lesco.gov.pk/Modules/CustomerCare/BillInfo.asp?nReferenceNo=${ref}&strAction=ViewBill`;
-                fallback.classList.remove('hidden');
-            } finally {
-                btnText.classList.remove('hidden'); loader.classList.add('hidden');
-            }
+            frame.src = targetUrl;
+            portal.classList.remove('hidden');
+            
+            // Scroll to bill
+            window.scrollTo({ top: portal.offsetTop - 50, behavior: 'smooth' });
         }
 
-        function calculate2026() {
-            const u = parseInt(document.getElementById('units').value);
-            if(!u) return;
-            const rate = u > 300 ? 48.5 : 34.2; 
-            const base = u * rate;
+        function runCalc() {
+            const u = document.getElementById('unitInput').value;
+            const base = u * 35; // Rough 2026 average rate
             const gst = base * 0.18;
-            const fpa = u * 3.23;
-            const total = base + gst + fpa + 35;
             document.getElementById('gst').innerText = "Rs. " + gst.toFixed(0);
-            document.getElementById('fuel').innerText = "Rs. " + fpa.toFixed(0);
-            document.getElementById('grand').innerText = "Rs. " + Math.round(total).toLocaleString();
-            document.getElementById('calcRes').classList.remove('hidden');
+            document.getElementById('total').innerText = "Rs. " + (base + gst + 35).toLocaleString();
+            document.getElementById('res').classList.remove('hidden');
         }
 
-        function saveToHistory(ref) {
-            let h = JSON.parse(localStorage.getItem('l_h') || '[]');
-            if(!h.includes(ref)) {
-                h.unshift(ref);
-                localStorage.setItem('l_h', JSON.stringify(h.slice(0,3)));
-                renderHistory();
-            }
+        function printIframe() {
+            const frame = document.getElementById('lescoFrame');
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
         }
-
-        function renderHistory() {
-            const h = JSON.parse(localStorage.getItem('l_h') || '[]');
-            if(h.length > 0) {
-                document.getElementById('historyBox').classList.remove('hidden');
-                document.getElementById('historyList').innerHTML = h.map(r => `
-                    <div onclick="document.getElementById('refID').value='${r}'; smartFetch();" class="glass p-4 rounded-2xl flex justify-between items-center cursor-pointer hover:border-green-500 transition-all">
-                        <span class="font-mono text-sm">${r}</span>
-                        <span class="text-[9px] font-bold text-green-500">LOAD</span>
-                    </div>
-                `).join('');
-            }
-        }
-        window.onload = renderHistory;
     </script>
 </body>
 </html>
