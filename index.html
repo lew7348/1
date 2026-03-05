@@ -3,62 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LESCO Pro | Direct Bill Fetcher</title>
+    <title>LESCO Dashboard | History & Direct Check</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background: #020617; color: #f8fafc; font-family: sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .loader { border-top-color: #22c55e; animation: spin 0.8s linear infinite; }
+        body { background: #030712; color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .history-item:hover { background: rgba(34, 197, 94, 0.1); border-color: #22c55e; }
+        .spinner { border-top-color: #22c55e; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-6">
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
 
     <div class="max-w-md w-full">
         <div class="text-center mb-10">
-            <h1 class="text-4xl font-black text-green-500 italic">LESCO<span class="text-white font-light">PRO</span></h1>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Direct Extraction Engine v2.6</p>
+            <h1 class="text-4xl font-black text-white tracking-tighter">LESCO<span class="text-green-500">DASH</span></h1>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em] mt-1">2026 Extraction Protocol</p>
         </div>
 
-        <div class="glass p-8 rounded-[2.5rem] shadow-2xl">
-            <div class="space-y-5">
+        <div class="glass p-8 rounded-[2rem] shadow-2xl mb-6">
+            <div class="space-y-4">
                 <input type="text" id="refID" placeholder="14-Digit Ref No." 
-                       class="w-full bg-black/40 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none transition-all">
+                       class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none transition-all placeholder:text-gray-700">
                 
                 <button onclick="smartFetch()" id="mainBtn" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl text-sm uppercase transition-all flex justify-center items-center">
-                    <span id="btnText">Get Live Bill Data</span>
-                    <div id="loader" class="hidden loader w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
+                    <span id="btnText">Fetch Bill Data</span>
+                    <div id="loader" class="hidden spinner w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
                 </button>
             </div>
         </div>
 
-        <div id="billCard" class="hidden mt-6 glass p-8 rounded-[2.5rem] space-y-4 animate-in fade-in duration-300">
+        <div id="historySection" class="hidden mb-6">
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Recent Searches</h3>
+            <div id="historyList" class="space-y-2">
+                </div>
+        </div>
+
+        <div id="billCard" class="hidden glass p-8 rounded-[2rem] space-y-4 border-green-500/20 animate-in fade-in duration-300">
             <div class="flex justify-between items-center border-b border-white/5 pb-3">
-                <span class="text-xs text-gray-500 font-bold">CONSUMER:</span>
-                <span id="outName" class="text-sm font-bold text-white uppercase tracking-tight">---</span>
+                <span class="text-xs text-gray-500 font-bold uppercase">Consumer</span>
+                <span id="outName" class="text-sm font-bold text-white uppercase">---</span>
             </div>
             <div class="flex justify-between items-center border-b border-white/5 pb-3">
-                <span class="text-xs text-gray-500 font-bold">UNITS:</span>
+                <span class="text-xs text-gray-500 font-bold uppercase">Units Used</span>
                 <span id="outUnits" class="font-bold">---</span>
             </div>
             <div class="flex justify-between items-center">
-                <span class="text-xs text-gray-500 font-bold">AMOUNT:</span>
+                <span class="text-xs text-gray-500 font-bold uppercase">Amount Due</span>
                 <span id="outTotal" class="text-2xl font-black text-green-500">Rs. 0</span>
             </div>
-            <button onclick="generatePDF()" class="w-full mt-4 bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-[10px] uppercase border border-white/10">
-                Download Official PDF
-            </button>
+            <div class="flex gap-2 mt-4">
+                <button onclick="generatePDF()" class="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl text-[10px] uppercase border border-white/10 transition-all">
+                    📄 Download PDF
+                </button>
+                <button onclick="shareBill()" class="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl border border-white/10">
+                    🔗
+                </button>
+            </div>
         </div>
 
-        <div id="fallback" class="hidden mt-4 text-center">
-            <p class="text-xs text-red-400 mb-2 font-bold">Direct Fetching Blocked by LESCO</p>
-            <a id="directLink" href="#" target="_blank" class="text-green-500 underline text-sm font-bold">Open Official Bill in New Tab</a>
+        <div id="fallback" class="hidden mt-6 text-center p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+            <p class="text-xs text-red-400 font-bold mb-2">Government Server Protection Detected</p>
+            <a id="directLink" href="#" target="_blank" class="text-green-500 underline text-sm font-black">Open Original Bill Page</a>
         </div>
-
     </div>
 
     <script>
+        // Load History on Start
+        window.onload = () => { renderHistory(); };
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('lesco_history') || '[]');
+            const list = document.getElementById('historyList');
+            const section = document.getElementById('historySection');
+
+            if (history.length > 0) {
+                section.classList.remove('hidden');
+                list.innerHTML = history.map(ref => `
+                    <div onclick="document.getElementById('refID').value='${ref}'; smartFetch();" 
+                         class="history-item glass p-4 rounded-xl cursor-pointer flex justify-between items-center transition-all border border-transparent">
+                        <span class="text-sm font-mono tracking-wider">${ref}</span>
+                        <span class="text-[10px] text-green-500 font-bold uppercase">RE-CHECK</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function saveToHistory(ref) {
+            let history = JSON.parse(localStorage.getItem('lesco_history') || '[]');
+            history = history.filter(item => item !== ref); // Remove duplicates
+            history.unshift(ref); // Add to top
+            history = history.slice(0, 3); // Keep last 3
+            localStorage.setItem('lesco_history', JSON.stringify(history));
+            renderHistory();
+        }
+
         async function smartFetch() {
             const ref = document.getElementById('refID').value.trim();
             const btnText = document.getElementById('btnText');
@@ -66,41 +106,38 @@
             const card = document.getElementById('billCard');
             const fallback = document.getElementById('fallback');
 
-            if (ref.length < 10) return alert("Please enter a valid 14-digit Reference Number.");
+            if (ref.length < 10) return alert("Enter a valid Reference Number");
 
-            // Reset UI
+            // UI loading state
             btnText.classList.add('hidden');
             loader.classList.remove('hidden');
             card.classList.add('hidden');
             fallback.classList.add('hidden');
 
             try {
-                // TRYING PROXY 1: CorsProxy.io (Faster in 2026)
-                const targetUrl = `https://lescoebil.pk/check-bill?ref=${ref}`;
-                const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+                // Using 2026 Optimized CORS Proxy
+                const target = `https://lescoebil.pk/check-bill?ref=${ref}`;
+                const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
 
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error("Proxy 1 Failed");
-                const html = await response.text();
+                const response = await fetch(proxy);
+                const data = await response.json();
                 
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
+                const doc = parser.parseFromString(data.contents, 'text/html');
 
-                // Extracting from LESCO page
-                // Note: We use specific 2026 selectors. If they fail, we show the fallback.
-                const name = doc.querySelector('.consumer-name')?.innerText || "Data Extracted";
-                const total = doc.querySelector('.total-bill')?.innerText || "Click PDF below";
-                const units = doc.querySelector('.units-consumed')?.innerText || "See PDF";
+                // Extracting data
+                const name = doc.querySelector('.consumer-name, b, td')?.innerText || "Data Retrieved";
+                const amount = doc.querySelector('.total-bill, .amount')?.innerText || "Check PDF";
+                const units = doc.querySelector('.units-consumed')?.innerText || "---";
 
-                document.getElementById('outName').innerText = name;
-                document.getElementById('outTotal').innerText = total;
-                document.getElementById('outUnits').innerText = units;
+                document.getElementById('outName').innerText = name.length > 20 ? name.substring(0,20)+"..." : name;
+                document.getElementById('outTotal').innerText = amount;
+                document.getElementById('outUnits').innerText = units + " Units";
 
                 card.classList.remove('hidden');
+                saveToHistory(ref); // Only save if fetch was successful
 
             } catch (err) {
-                // FALLBACK: Show direct link if scraping is blocked
-                console.log("Dodging failed. Showing direct link.");
                 document.getElementById('directLink').href = `https://lescoebil.pk/check-bill?ref=${ref}`;
                 fallback.classList.remove('hidden');
             } finally {
@@ -116,16 +153,22 @@
             const name = document.getElementById('outName').innerText;
             const total = document.getElementById('outTotal').innerText;
 
-            doc.setFontSize(20);
-            doc.text("LESCO BILL SUMMARY (2026)", 20, 30);
-            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("LESCO OFFICIAL BILL EXTRACT", 20, 30);
+            doc.setFont("helvetica", "normal");
             doc.text(`Reference No: ${ref}`, 20, 50);
             doc.text(`Consumer: ${name}`, 20, 60);
-            doc.text(`Payable Amount: ${total}`, 20, 70);
-            doc.text(`----------------------------`, 20, 80);
-            doc.text("This is an automated summary generated for your record.", 20, 90);
-            
+            doc.text(`Total Payable: ${total}`, 20, 70);
+            doc.setFontSize(8);
+            doc.text(`Generated on ${new Date().toLocaleString()} via LESCODASH.PK`, 20, 90);
             doc.save(`LESCO_Bill_${ref}.pdf`);
+        }
+
+        function shareBill() {
+            const ref = document.getElementById('refID').value;
+            const url = window.location.href + "?ref=" + ref;
+            navigator.clipboard.writeText(url);
+            alert("Shareable link copied to clipboard!");
         }
     </script>
 </body>
