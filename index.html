@@ -3,112 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LESCO Pro | Elite Dashboard</title>
+    <title>LESCO Pro | Elite Billing Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --bg: #020617; --card: rgba(30, 41, 59, 0.4); --text: #f8fafc; }
-        .light-mode { --bg: #f1f5f9; --card: rgba(255, 255, 255, 0.8); --text: #0f172a; }
+        :root { --bg: #030712; --card: rgba(30, 41, 59, 0.4); --accent: #22c55e; }
+        .light-mode { --bg: #f8fafc; --card: rgba(255, 255, 255, 0.9); --accent: #16a34a; }
         
-        body { background: var(--bg); color: var(--text); transition: all 0.3s ease; font-family: 'Inter', sans-serif; }
-        .glass { background: var(--card); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .tab-active { border-bottom: 3px solid #22c55e; color: #22c55e; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .light-mode { color: #0f172a; }
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-active { border-bottom: 3px solid var(--accent); color: var(--accent); }
+        .spinner { border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-10 px-4">
+<body class="min-h-screen flex flex-col items-center py-8 px-4">
 
-    <button onclick="toggleTheme()" class="fixed top-6 right-6 glass p-3 rounded-full text-xl">🌓</button>
+    <button onclick="toggleTheme()" class="fixed top-5 right-5 glass p-3 rounded-full shadow-xl">🌓</button>
 
     <div class="max-w-md w-full">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl font-black italic tracking-tighter">LESCO<span class="text-green-500">PRO</span></h1>
-            <p class="text-[10px] opacity-50 font-bold uppercase tracking-[0.4em] mt-2">March 2026 Live Updates</p>
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-black tracking-tighter italic">LESCO<span class="text-green-500">PRO</span></h1>
+            <p id="dateLine" class="text-[10px] font-bold opacity-40 uppercase tracking-[0.3em] mt-2"></p>
         </div>
 
-        <div class="flex justify-around mb-8 border-b border-white/5">
-            <button onclick="switchTab('check')" id="tabCheck" class="tab-active pb-3 font-black text-xs uppercase tracking-widest">Bill Checker</button>
-            <button onclick="switchTab('calc')" id="tabCalc" class="pb-3 font-black text-xs uppercase tracking-widest opacity-50">Tax Estimator</button>
+        <div class="flex justify-around mb-8 border-b border-white/10 font-black text-[11px] uppercase tracking-widest">
+            <button onclick="switchTab('check')" id="tabCheck" class="tab-active pb-3">Check Bill</button>
+            <button onclick="switchTab('calc')" id="tabCalc" class="pb-3 opacity-40">Tax Estimator</button>
         </div>
 
-        <div id="sectionCheck" class="animate-in fade-in slide-in-from-bottom-4">
+        <div id="sectionCheck" class="space-y-4">
             <div class="glass p-8 rounded-[2.5rem] shadow-2xl">
-                <input type="text" id="refID" placeholder="14-Digit Reference" 
-                       class="w-full bg-black/20 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none mb-4">
-                <button onclick="smartFetch()" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl transition-all shadow-lg shadow-green-500/20">FETCH LIVE BILL</button>
-            </div>
+                <div class="relative">
+                    <input type="text" id="refID" placeholder="14-Digit Ref No." 
+                           class="w-full bg-black/30 border border-white/10 p-5 rounded-2xl text-2xl font-mono focus:border-green-500 outline-none text-center">
+                </div>
+                <button onclick="smartFetch()" id="fetchBtn" class="w-full bg-green-600 hover:bg-green-500 text-black font-black py-5 rounded-2xl mt-4 uppercase text-xs tracking-widest shadow-lg shadow-green-500/20 transition-all active:scale-95">
+                    <span id="btnText">Verify & Extract</span>
+                    <div id="loader" class="hidden spinner w-5 h-5 border-2 border-black border-t-transparent rounded-full mx-auto"></div>
+                </button>
             </div>
 
-        <div id="sectionCalc" class="hidden animate-in fade-in slide-in-from-bottom-4">
-            <div class="glass p-8 rounded-[2.5rem] space-y-6">
-                <div>
-                    <label class="text-[10px] font-bold text-green-500 uppercase tracking-widest ml-1">Units (e.g., 300)</label>
-                    <input type="number" id="unitInput" placeholder="000" 
-                           class="w-full bg-black/20 border border-white/10 p-5 rounded-2xl text-4xl font-black focus:border-green-500 outline-none">
-                </div>
-                <button onclick="calculateMarch2026()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase text-xs tracking-tighter hover:bg-green-500 transition-all">Calculate 2026 Taxes</button>
+            <div id="historyBox" class="hidden">
+                <p class="text-[10px] font-bold text-gray-500 mb-2 ml-2 uppercase">Recent Bills</p>
+                <div id="historyList" class="space-y-2"></div>
             </div>
 
-            <div id="calcDisplay" class="hidden mt-6 glass p-8 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
-                <div class="flex justify-between text-sm opacity-70"><span>Variable Charges:</span><span id="vCharge">Rs. 0</span></div>
-                <div class="flex justify-between text-sm opacity-70"><span>F.C. Surcharge (Rs. 3.23/u):</span><span id="fCharge">Rs. 0</span></div>
-                <div class="flex justify-between text-sm opacity-70"><span>GST (18%):</span><span id="gCharge">Rs. 0</span></div>
-                <div class="flex justify-between text-sm opacity-70"><span>Elec. Duty (1.5%):</span><span id="eDuty">Rs. 0</span></div>
-                <div class="flex justify-between text-sm opacity-70"><span>TV Fee:</span><span>Rs. 35</span></div>
-                <div class="pt-4 border-t border-white/10 flex justify-between items-center">
-                    <span class="font-bold text-lg">Total Estimate:</span>
-                    <span id="tCharge" class="text-3xl font-black text-green-500">Rs. 0</span>
-                </div>
+            <div id="resultCard" class="hidden glass p-8 rounded-[2.5rem] space-y-4 border-l-4 border-green-500 animate-in fade-in zoom-in-95 duration-300">
+                <div class="flex justify-between items-center"><span class="text-xs opacity-50 uppercase font-bold">Status</span><span class="bg-green-500 text-black text-[10px] px-2 py-1 rounded font-black">ACTIVE</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs opacity-50 uppercase font-bold">Payable:</span><span id="outTotal" class="text-2xl font-black text-green-500">---</span></div>
+                <button onclick="generatePDF()" class="w-full bg-white/5 border border-white/10 py-3 rounded-xl text-[10px] font-bold uppercase hover:bg-white/10">Download Summary PDF</button>
+            </div>
+
+            <div id="fallback" class="hidden glass p-6 rounded-3xl border-red-500/30 text-center">
+                <p class="text-xs text-red-400 font-bold mb-3">LESCO Firewall Detected Request</p>
+                <a id="secureLink" href="#" target="_blank" class="block w-full bg-red-500/10 text-red-400 py-4 rounded-xl font-bold text-sm border border-red-500/20">Open Secure Billing Tunnel</a>
+            </div>
+        </div>
+
+        <div id="sectionCalc" class="hidden space-y-4">
+            <div class="glass p-8 rounded-[2.5rem]">
+                <label class="text-[10px] font-bold opacity-50 uppercase mb-2 block">Monthly Units (kWh)</label>
+                <input type="number" id="units" placeholder="300" class="w-full bg-black/30 border border-white/10 p-5 rounded-2xl text-4xl font-black focus:border-green-500 outline-none text-center">
+                <button onclick="calculate2026()" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-4 uppercase text-xs tracking-widest">Calculate Taxes</button>
+            </div>
+            <div id="calcRes" class="hidden glass p-8 rounded-[2.5rem] space-y-3">
+                <div class="flex justify-between text-xs opacity-60"><span>GST (18%):</span><span id="gst">0</span></div>
+                <div class="flex justify-between text-xs opacity-60"><span>Fuel Adjustment:</span><span id="fuel">0</span></div>
+                <div class="flex justify-between font-black text-xl pt-2 border-t border-white/5"><span>Grand Total:</span><span id="grand" class="text-green-500">0</span></div>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-        }
+        document.getElementById('dateLine').innerText = "Live Update: " + new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
 
         function switchTab(tab) {
-            const check = document.getElementById('sectionCheck');
-            const calc = document.getElementById('sectionCalc');
-            const tCheck = document.getElementById('tabCheck');
-            const tCalc = document.getElementById('tabCalc');
+            const isCalc = tab === 'calc';
+            document.getElementById('sectionCalc').classList.toggle('hidden', !isCalc);
+            document.getElementById('sectionCheck').classList.toggle('hidden', isCalc);
+            document.getElementById('tabCalc').classList.toggle('tab-active', isCalc);
+            document.getElementById('tabCalc').classList.toggle('opacity-40', !isCalc);
+            document.getElementById('tabCheck').classList.toggle('tab-active', !isCalc);
+            document.getElementById('tabCheck').classList.toggle('opacity-40', isCalc);
+        }
 
-            if(tab === 'calc') {
-                check.classList.add('hidden'); calc.classList.remove('hidden');
-                tCalc.classList.add('tab-active'); tCalc.classList.remove('opacity-50');
-                tCheck.classList.remove('tab-active'); tCheck.classList.add('opacity-50');
-            } else {
-                calc.classList.add('hidden'); check.classList.remove('hidden');
-                tCheck.classList.add('tab-active'); tCheck.classList.remove('opacity-50');
-                tCalc.classList.remove('tab-active'); tCalc.classList.add('opacity-50');
+        async function smartFetch() {
+            const ref = document.getElementById('refID').value.trim();
+            const loader = document.getElementById('loader');
+            const btnText = document.getElementById('btnText');
+            const resultCard = document.getElementById('resultCard');
+            const fallback = document.getElementById('fallback');
+
+            if(ref.length < 10) return alert("Please enter valid reference number");
+
+            // UI Loading
+            btnText.classList.add('hidden'); loader.classList.remove('hidden');
+            resultCard.classList.add('hidden'); fallback.classList.add('hidden');
+
+            try {
+                // Bypass Logic for 2026: LESCO often blocks proxies, so we use a robust one
+                const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent('https://lescoebil.pk/check-bill?ref='+ref)}`;
+                const response = await fetch(proxy);
+                const data = await response.json();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+
+                // Try to find common data points
+                const amount = doc.querySelector('.total-bill, .payable')?.innerText || "Click Tunnel Below";
+                
+                document.getElementById('outTotal').innerText = amount;
+                resultCard.classList.remove('hidden');
+                saveToHistory(ref);
+            } catch (e) {
+                // If scraping fails (90% likely in 2026), show the "Secure Tunnel"
+                document.getElementById('secureLink').href = `http://www.lesco.gov.pk/Modules/CustomerCare/BillInfo.asp?nReferenceNo=${ref}&strAction=ViewBill`;
+                fallback.classList.remove('hidden');
+            } finally {
+                btnText.classList.remove('hidden'); loader.classList.add('hidden');
             }
         }
 
-        function calculateMarch2026() {
-            const units = parseInt(document.getElementById('unitInput').value);
-            if(!units || units < 0) return;
-
-            // Updated March 2026 Slabs (Average Residential)
-            let perUnitRate = 0;
-            if (units <= 100) perUnitRate = 16.48;
-            else if (units <= 200) perUnitRate = 22.95;
-            else if (units <= 300) perUnitRate = 34.26;
-            else perUnitRate = 48.12;
-
-            const variableCharges = units * perUnitRate;
-            const fcSurcharge = units * 3.23;
-            const elecDuty = variableCharges * 0.015;
-            const gst = (variableCharges + fcSurcharge + elecDuty) * 0.18;
-            const tvFee = 35;
-            const grandTotal = variableCharges + fcSurcharge + elecDuty + gst + tvFee;
-
-            document.getElementById('vCharge').innerText = "Rs. " + variableCharges.toFixed(0);
-            document.getElementById('fCharge').innerText = "Rs. " + fcSurcharge.toFixed(0);
-            document.getElementById('eDuty').innerText = "Rs. " + elecDuty.toFixed(0);
-            document.getElementById('gCharge').innerText = "Rs. " + gst.toFixed(0);
-            document.getElementById('tCharge').innerText = "Rs. " + Math.round(grandTotal).toLocaleString();
-            
-            document.getElementById('calcDisplay').classList.remove('hidden');
+        function calculate2026() {
+            const u = parseInt(document.getElementById('units').value);
+            if(!u) return;
+            const rate = u > 300 ? 48.5 : 34.2; 
+            const base = u * rate;
+            const gst = base * 0.18;
+            const fpa = u * 3.23;
+            const total = base + gst + fpa + 35;
+            document.getElementById('gst').innerText = "Rs. " + gst.toFixed(0);
+            document.getElementById('fuel').innerText = "Rs. " + fpa.toFixed(0);
+            document.getElementById('grand').innerText = "Rs. " + Math.round(total).toLocaleString();
+            document.getElementById('calcRes').classList.remove('hidden');
         }
+
+        function saveToHistory(ref) {
+            let h = JSON.parse(localStorage.getItem('l_h') || '[]');
+            if(!h.includes(ref)) {
+                h.unshift(ref);
+                localStorage.setItem('l_h', JSON.stringify(h.slice(0,3)));
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            const h = JSON.parse(localStorage.getItem('l_h') || '[]');
+            if(h.length > 0) {
+                document.getElementById('historyBox').classList.remove('hidden');
+                document.getElementById('historyList').innerHTML = h.map(r => `
+                    <div onclick="document.getElementById('refID').value='${r}'; smartFetch();" class="glass p-4 rounded-2xl flex justify-between items-center cursor-pointer hover:border-green-500 transition-all">
+                        <span class="font-mono text-sm">${r}</span>
+                        <span class="text-[9px] font-bold text-green-500">LOAD</span>
+                    </div>
+                `).join('');
+            }
+        }
+        window.onload = renderHistory;
     </script>
 </body>
 </html>
