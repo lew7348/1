@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Simulator Pro | Crypto & Gold</title>
+<meta name="description" content="Simulate Bitcoin, Ethereum and Gold investments with SIP and historical comparison.">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📊 Investment Simulator Pro</h1>
+
+<div class="card">
+
+<div class="grid">
+
+<input type="number" id="amount" value="1000" placeholder="Investment Amount">
+
+<select id="asset1">
+<option value="bitcoin">Bitcoin</option>
+<option value="ethereum">Ethereum</option>
+<option value="pax-gold">Gold</option>
+</select>
+
+<select id="asset2">
+<option value="">Compare With (Optional)</option>
+<option value="bitcoin">Bitcoin</option>
+<option value="ethereum">Ethereum</option>
+<option value="pax-gold">Gold</option>
+</select>
+
+<input type="date" id="startDate">
+
+<select id="currency">
+<option value="usd">USD</option>
+<option value="pkr">PKR</option>
+</select>
+
+<select id="mode">
+<option value="lumpsum">One-Time Investment</option>
+<option value="sip">Monthly SIP</option>
+</select>
+
+<button onclick="simulate()">Simulate</button>
+
+</div>
+
+<div id="loading" class="loading hidden">Calculating...</div>
+<div id="results"></div>
+
+</div>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
