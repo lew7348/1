@@ -3,95 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoloPDF Ultra | 2026 Pro Toolkit</title>
+    <title>PakPrice | Live Daily Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .bento-card { 
-            background: rgba(30, 41, 59, 0.4); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-        .bento-card:hover { border-color: #ef4444; background: rgba(30, 41, 59, 0.7); transform: translateY(-5px); }
-        .loader { border-top-color: #ef4444; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="p-6 md:p-12">
-
-    <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-            <h1 class="text-4xl font-black italic tracking-tighter">SOLO<span class="text-red-600 underline">PDF</span></h1>
-            <div id="ticker" class="flex gap-4">
-                <div class="bg-white/5 px-4 py-2 rounded-full border border-white/10 text-xs font-mono">
-                    <span class="text-orange-400">BTC</span> <span id="btc-val">$---</span>
-                </div>
-                <div class="bg-white/5 px-4 py-2 rounded-full border border-white/10 text-xs font-mono">
-                    <span class="text-yellow-400">GOLD</span> <span id="gold-val">$---</span>
-                </div>
-            </div>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-black text-green-500 tracking-tighter">PAK<span class="text-white">PRICE</span></h1>
+            <p class="text-gray-400 text-sm mt-2">Live Automated Market Tracker — March 2026</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div class="md:col-span-2 bento-card p-10 rounded-[2.5rem] relative overflow-hidden">
-                <h2 class="text-3xl font-bold mb-2">Merge PDF</h2>
-                <p class="text-gray-400 mb-8">Combine multiple documents into one.</p>
-                <input type="file" id="merge-input" multiple accept=".pdf" class="hidden">
-                <button onclick="document.getElementById('merge-input').click()" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl font-bold transition-all">UPLOAD PDFs</button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="glass p-6 rounded-3xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Petrol (Super)</span>
+                    <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-1 rounded">▲ UP</span>
+                </div>
+                <div class="text-3xl font-black">Rs. 266.17</div>
+                <div class="text-[10px] text-gray-500 mt-2 italic text-right italic">Updated: Mar 1</div>
             </div>
 
-            <div class="bento-card p-8 rounded-[2.5rem]">
-                <div class="text-3xl mb-4">🖼️</div>
-                <h3 class="text-xl font-bold mb-2">Image to PDF</h3>
-                <p class="text-sm text-gray-400 mb-6">Convert JPG/PNG to a PDF file.</p>
-                <input type="file" id="img-input" accept="image/*" class="hidden">
-                <button onclick="document.getElementById('img-input').click()" class="text-red-500 font-bold hover:underline uppercase text-xs">Convert Image</button>
+            <div class="glass p-6 rounded-3xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Diesel (HSD)</span>
+                    <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-1 rounded">▲ UP</span>
+                </div>
+                <div class="text-3xl font-black">Rs. 280.86</div>
+                <div class="text-[10px] text-gray-500 mt-2 text-right italic">Updated: Mar 1</div>
             </div>
 
-            <div class="bento-card p-8 rounded-[2.5rem]">
-                <div class="text-3xl mb-4">🔓</div>
-                <h3 class="text-xl font-bold mb-2">Unlock PDF</h3>
-                <p class="text-sm text-gray-400 mb-6">Remove security from your PDF.</p>
-                <input type="file" id="unlock-input" accept=".pdf" class="hidden">
-                <button onclick="document.getElementById('unlock-input').click()" class="text-red-500 font-bold hover:underline uppercase text-xs">Select File</button>
-            </div>
-
-            <div class="bento-card p-8 rounded-[2.5rem]">
-                <div class="text-3xl mb-4">📉</div>
-                <h3 class="text-xl font-bold mb-2">Compress</h3>
-                <p class="text-sm text-gray-400 mb-6">Shrink file size without losing quality.</p>
-                <input type="file" id="compress-input" accept=".pdf" class="hidden">
-                <button onclick="document.getElementById('compress-input').click()" class="text-red-500 font-bold hover:underline uppercase text-xs">Optimize</button>
-            </div>
-
-            <div class="bento-card p-8 rounded-[2.5rem] bg-blue-900/10">
-                <div class="text-3xl mb-4">📝</div>
-                <h3 class="text-xl font-bold mb-2">PDF to Word</h3>
-                <p class="text-sm text-gray-400 mb-6 text-blue-300">Convert to editable .docx (Online Required)</p>
-                <a href="https://www.convertapi.com/pdf-to-docx" target="_blank" class="text-blue-500 font-bold hover:underline uppercase text-xs italic">Use Cloud Converter →</a>
+            <div class="glass p-6 rounded-3xl">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Gold (24K/Tola)</span>
+                    <span class="bg-green-500/20 text-green-400 text-[10px] px-2 py-1 rounded">▼ DOWN</span>
+                </div>
+                <div id="gold-val" class="text-3xl font-black">Rs. 539,962</div>
+                <div class="text-[10px] text-gray-500 mt-2 text-right italic">Updated: Mar 4</div>
             </div>
         </div>
 
-        <div id="loader" class="fixed inset-0 bg-black/80 hidden flex flex-col items-center justify-center z-50">
-            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-            <h2 class="text-white text-xl font-bold">Processing...</h2>
-        </div>
-    </div>
-
-    <script>
-        const { PDFDocument } = PDFLib;
-        const loader = document.getElementById('loader');
-
-        // --- MARKET DATA FIX ---
-        async function fetchMarket() {
-            try {
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=usd');
-                const data = await res.json();
-                document.getElementById('btc-val').innerText = `$${data.bitcoin.usd.toLocaleString()}`;
-                document.getElementById('gold-val').innerText = `$${data['pax-gold'].usd.toLocaleString()}`;
-            } catch (e) {
-                document.getElementById('btc-val').innerText =
+        <div class="glass p-8 rounded-[2rem] border-green-500/20 border-2">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                ⚡ Electricity Bill Estimator (2026 Rates)
+            </h2>
+            <div class="space-y-4">
+                <label class="block text-sm text-gray-400">Enter Monthly Units Consumed:</label>
+                <input type="number" id="units" placeholder="e.g. 350" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-xl outline-none focus:border-green-500">
+                
+                <button onclick="calculateBill()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all">CALCULATE ESTIMATE</button>
+                
+                <div id="bill-result" class="hidden mt-6 p-6 bg-white/5 rounded-2xl border-l-4 border-green-500">
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span>Estimated Total Bill:</span>
+                        <span id="final-amount" class="text-2xl font-black text-green-400">Rs. 0</span>
